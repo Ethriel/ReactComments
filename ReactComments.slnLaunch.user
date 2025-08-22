@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "reactcomments.client\\reactcomments.client.esproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "ReactComments.Server\\ReactComments.Server.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

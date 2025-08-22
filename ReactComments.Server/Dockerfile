@@ -1,14 +1,19 @@
 # Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+# Copy projects and restore
 WORKDIR /src
+COPY ["ReactComments.Server/ReactComments.Server.csproj", "/src/ReactComments.Server/"]
+COPY ["ReactComments.DAL/ReactComments.DAL.csproj", "/src/ReactComments.DAL/"]
+COPY ["ReactComments.Server/appsettings.json", "/src/ReactComments.Server/appsettings.json"]
 
-# Copy project and restore
-COPY ["ReactComments.Server.csproj", "."]
-RUN dotnet restore "./ReactComments.Server.csproj"
-
-# Copy all source files
+WORKDIR "/src/ReactComments.Server"
+RUN dotnet restore "ReactComments.Server.csproj"
 COPY . .
-RUN dotnet build "./ReactComments.Server.csproj" -c Release -o /app/build
+
+WORKDIR "/src/ReactComments.Server"
+RUN dotnet build "./ReactComments.Server.csproj" -c Release -o /app/build /p:UseAppHost=false
+
 RUN dotnet publish "./ReactComments.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime
@@ -17,6 +22,10 @@ WORKDIR /app
 
 # Copy published app
 COPY --from=build /app/publish ./
+
+# App entrypoint script
+#COPY --from=build /src/ReactComments.Server/entrypoint.sh ./entrypoint.sh
+#RUN chmod +x /app/entrypoint.sh
 
 # Create folder for mounted certificates
 RUN mkdir -p /root/.aspnet/https
@@ -33,3 +42,4 @@ ENV ASPNETCORE_Kestrel__Certificates__Default__Password=""
 
 # Start server
 ENTRYPOINT ["dotnet", "ReactComments.Server.dll"]
+#ENTRYPOINT ["/app/entrypoint.sh"]

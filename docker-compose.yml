@@ -1,8 +1,8 @@
 services:
   backend:
     build:
-      context: ./ReactComments.Server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ReactComments.Server/Dockerfile
     container_name: reactcomments_backend
     ports:
       - "8080:8080"
@@ -13,6 +13,7 @@ services:
       ASPNETCORE_URLS: "https://+:8081;http://+:8080"
       ASPNETCORE_Kestrel__Certificates__Default__Path: /root/.aspnet/https/reactcomments.client.pfx
       ASPNETCORE_Kestrel__Certificates__Default__Password: ""
+      IsDocker: "true"
     volumes:
       - "${APPDATA}/ASP.NET/https:/root/.aspnet/https"
     depends_on:
@@ -41,7 +42,7 @@ services:
       - "1433:1433"
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "PaSsw0Rd!"  # fixed variable name
+      MSSQL_SA_PASSWORD: "Your_password123"
       MSSQL_PID: Developer
     volumes:
       - mssql_data:/var/opt/mssql
