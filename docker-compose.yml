@@ -1,0 +1,50 @@
+services:
+  backend:
+    build:
+      context: ./ReactComments.Server
+      dockerfile: Dockerfile
+    container_name: reactcomments_backend
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      ASPNETCORE_URLS: "https://+:8081;http://+:8080"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /root/.aspnet/https/reactcomments.client.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ""
+    volumes:
+      - "${APPDATA}/ASP.NET/https:/root/.aspnet/https"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./ReactComments.Client
+      dockerfile: Dockerfile
+    container_name: reactcomments_frontend
+    ports:
+      - "65196:65196"
+    environment:
+      VITE_IN_DOCKER: "true"
+    volumes:
+      - "${APPDATA}/ASP.NET/https:/root/.aspnet/https"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: reactcomments_db
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "PaSsw0Rd!"  # fixed variable name
+      MSSQL_PID: Developer
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+volumes:
+  mssql_data:

@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  frontend:
+    volumes:
+      - ./reactcomments.client/src:/app/src
+      - ./reactcomments.client/public:/app/public
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: npm run dev
