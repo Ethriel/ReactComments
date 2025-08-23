@@ -1,5 +1,7 @@
 
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ReactComments.DAL;
 using ReactComments.Server.Extensions;
 using Scalar.AspNetCore;
@@ -17,7 +19,7 @@ namespace ReactComments.Server
 
             builder.Services.AddControllers();
 
-            var isDocker = builder.Configuration.GetValue<bool>("IsDocker");
+            var isDocker = builder.Configuration.GetValue<bool>("IsDocker", false);
             var connectionString = isDocker ? builder.Configuration.GetConnectionString("Docker") : builder.Configuration.GetConnectionString("Default");
 
             builder.Services.AddDbContext<CommentsDbContext>(options => options.UseSqlServer(connectionString))
@@ -32,9 +34,7 @@ namespace ReactComments.Server
                 var dbContext = scope.ServiceProvider.GetRequiredService<DbContext>();
                 var pendingMigrations = dbContext.Database.GetPendingMigrations();
                 if (pendingMigrations.Any())
-                {
                     dbContext.Database.Migrate();
-                }
             }
 
             app.UseDefaultFiles();
@@ -45,6 +45,17 @@ namespace ReactComments.Server
                 app.MapOpenApi();
                 app.MapScalarApiReference();
             }
+
+            app.UseExceptionHandler(a => a.Run(async context =>
+            {
+                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                var exception = exceptionHandlerPathFeature?.Error;
+
+                var result = JsonConvert.SerializeObject(new { error = exception?.Message });
+                context.Response.ContentType = "application/json";
+
+                await context.Response.WriteAsync(result);
+            }));
 
             app.UseHttpsRedirection();
 

@@ -20,7 +20,7 @@ namespace ReactComments.DAL
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var isDocker = Configuration.GetValue<bool>("IsDocker");
+                var isDocker = Configuration.GetValue("IsDocker", false);
                 var connectionString = isDocker ? Configuration.GetConnectionString("Docker") : Configuration.GetConnectionString("Default");
 
                 optionsBuilder.UseSqlServer(Configuration.GetConnectionString(connectionString));
