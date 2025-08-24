@@ -6,10 +6,11 @@ using ReactComments.DAL.Model;
 
 namespace ReactComments.DAL
 {
-    public class CommentsDbContext : IdentityDbContext<Person, IdentityRole<Guid>, Guid>
+    public class CommentsDbContext : IdentityDbContext<Person, AppRole, int>
     {
         public virtual DbSet<Person> People { get; set; }
         public virtual DbSet<Comment> Comments { get; set; }
+        public virtual DbSet<AppRole> AppRoles { get; set; }
         public virtual IConfiguration Configuration { get; set; }
 
         public CommentsDbContext(IConfiguration configuration) : base() { Configuration = configuration; }
@@ -41,6 +42,11 @@ namespace ReactComments.DAL
                       .HasForeignKey(c => c.PersonId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            builder.Entity<AppRole>()
+                .HasMany(ar => ar.People)
+                .WithOne(p => p.AppRole)
+                .HasForeignKey(p => p.RoleId);
 
             builder.Entity<Comment>(entity =>
             {

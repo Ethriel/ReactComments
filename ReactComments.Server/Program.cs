@@ -1,8 +1,10 @@
 
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using ReactComments.DAL;
+using ReactComments.DAL.Model;
 using ReactComments.Server.Extensions;
 using Scalar.AspNetCore;
 
@@ -19,11 +21,13 @@ namespace ReactComments.Server
 
             builder.Services.AddControllers();
 
-            var isDocker = builder.Configuration.GetValue<bool>("IsDocker", false);
-            var connectionString = isDocker ? builder.Configuration.GetConnectionString("Docker") : builder.Configuration.GetConnectionString("Default");
-
-            builder.Services.AddDbContext<CommentsDbContext>(options => options.UseSqlServer(connectionString))
+            builder.Services.AddAppPackageServices(builder.Configuration)
                             .AddAppServices();
+
+            builder.Services.AddIdentity<Person, AppRole>()
+                            .AddEntityFrameworkStores<CommentsDbContext>()
+                            .AddRoles<AppRole>()
+                            .AddDefaultTokenProviders();
 
             builder.Services.AddOpenApi();
 
