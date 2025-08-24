@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ReactComments.Services")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3b9528ba770ab089ba9f412c51381c89ef5fe1b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e83657f6ce0926c26e0ebcd91613299bbf91e509")]
 [assembly: System.Reflection.AssemblyProductAttribute("ReactComments.Services")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ReactComments.Services")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

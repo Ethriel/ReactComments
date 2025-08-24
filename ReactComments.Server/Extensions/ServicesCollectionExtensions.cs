@@ -21,8 +21,10 @@ namespace ReactComments.Server.Extensions
             return services.AddScoped<DbContext, CommentsDbContext>()
                            .AddScoped(typeof(IEntityService<>), typeof(EntityService<>))
                            .AddScoped(typeof(IEntityExtendedService<>), typeof(EntityExtendedService<>))
-                           .AddScoped(typeof(IMapperService<,>), typeof(MapperService<,>));
-            //.AddScoped(typeof(IUtilityService), typeof(UtilityService));
+                           .AddScoped(typeof(IMapperService<,>), typeof(MapperService<,>))
+                           .AddScoped<IPersonService, PersonService>()
+                           .AddScoped<ICommentService, CommentService>()
+                           .AddScoped<IAuthService, AuthService>();
         }
     }
 }
