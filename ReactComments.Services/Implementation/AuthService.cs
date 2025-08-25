@@ -128,7 +128,7 @@ namespace ReactComments.Services.Implementation
             else
             {
                 var role = await roleManager.FindByNameAsync("USER");
-                var user = new Person { Email = personAuth.Email, AppRole = role };
+                var user = new Person { Email = personAuth.Email, UserName = personAuth.Email, AppRole = role };
 
                 var creationResult = await userManager.CreateAsync(user, personAuth.Password);
                 if (creationResult.Succeeded)

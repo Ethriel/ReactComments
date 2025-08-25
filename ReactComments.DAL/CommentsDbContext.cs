@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ReactComments.DAL.Model;
@@ -11,9 +10,10 @@ namespace ReactComments.DAL
         public virtual DbSet<Person> People { get; set; }
         public virtual DbSet<Comment> Comments { get; set; }
         public virtual DbSet<AppRole> AppRoles { get; set; }
+        public virtual DbSet<FileAttachment> FileAttachments { get; set; }
         public virtual IConfiguration Configuration { get; set; }
 
-        public CommentsDbContext(IConfiguration configuration) : base() { Configuration = configuration; }
+        public CommentsDbContext(IConfiguration configuration) : this(new DbContextOptions<CommentsDbContext>(), configuration) { }
 
         public CommentsDbContext(DbContextOptions options, IConfiguration configuration) : base(options) { Configuration = configuration; }
 
@@ -46,7 +46,8 @@ namespace ReactComments.DAL
             builder.Entity<AppRole>()
                 .HasMany(ar => ar.People)
                 .WithOne(p => p.AppRole)
-                .HasForeignKey(p => p.RoleId);
+                .HasForeignKey(p => p.RoleId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<Comment>(entity =>
             {
@@ -60,6 +61,21 @@ namespace ReactComments.DAL
 
                 entity.Property(c => c.Text)
                       .HasMaxLength(100_000);
+
+                entity.HasOne(c => c.ImageAttachment)
+                      .WithOne(fa => fa.ImageComment)
+                      .HasForeignKey<FileAttachment>(fa => fa.ImageCommentId);
+
+                entity.HasOne(c => c.TextFileAttachment)
+                      .WithOne(fa => fa.TextFileComment)
+                      .HasForeignKey<FileAttachment>(fa => fa.TextFileCommentId);
+            });
+
+            builder.Entity<FileAttachment>(entity =>
+            {
+                entity.Property(fa => fa.Name).HasMaxLength(255);
+                entity.Property(fa => fa.Type).HasMaxLength(50);
+                entity.Property(fa => fa.Contents).IsRequired();
             });
         }
     }

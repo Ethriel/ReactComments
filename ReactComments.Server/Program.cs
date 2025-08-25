@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,13 +20,15 @@ namespace ReactComments.Server
 
             builder.Services.AddControllers();
 
-            builder.Services.AddAppPackageServices(builder.Configuration)
-                            .AddAppServices();
-
             builder.Services.AddIdentity<Person, AppRole>()
                             .AddEntityFrameworkStores<CommentsDbContext>()
                             .AddRoles<AppRole>()
                             .AddDefaultTokenProviders();
+
+            builder.Services.AddAppPackageServices(builder.Configuration)
+                            .AddAppServices()
+                            .AddValidators()
+                            .ConfigureCookies();
 
             builder.Services.AddOpenApi();
 
@@ -35,10 +36,17 @@ namespace ReactComments.Server
 
             using (var scope = app.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<DbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<CommentsDbContext>();
                 var pendingMigrations = dbContext.Database.GetPendingMigrations();
                 if (pendingMigrations.Any())
                     dbContext.Database.Migrate();
+
+                if (!dbContext.Roles.Any())
+                {
+                    dbContext.Roles.Add(new AppRole { Name = "USER", NormalizedName = "User" });
+                    dbContext.Roles.Add(new AppRole { Name = "ADMIN", NormalizedName = "Admin" });
+                    dbContext.SaveChanges();
+                }
             }
 
             app.UseDefaultFiles();
@@ -62,6 +70,8 @@ namespace ReactComments.Server
             }));
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

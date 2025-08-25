@@ -5,6 +5,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["ReactComments.Server/ReactComments.Server.csproj", "/src/ReactComments.Server/"]
 COPY ["ReactComments.DAL/ReactComments.DAL.csproj", "/src/ReactComments.DAL/"]
+COPY ["ReactComments.Services/ReactComments.Services.csproj", "/src/ReactComments.Services/"]
 COPY ["ReactComments.Server/appsettings.json", "/src/ReactComments.Server/appsettings.json"]
 
 WORKDIR "/src/ReactComments.Server"

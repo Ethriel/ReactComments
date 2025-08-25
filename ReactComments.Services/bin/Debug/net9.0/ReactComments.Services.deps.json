@@ -10,6 +10,7 @@
         "dependencies": {
           "AutoMapper": "15.0.1",
           "FluentValidation": "12.0.0",
+          "HtmlAgilityPack": "1.12.2",
           "Microsoft.EntityFrameworkCore": "9.0.8",
           "Newtonsoft.Json": "13.0.3",
           "ReactComments.DAL": "1.0.0"
@@ -82,6 +83,14 @@
           "lib/net8.0/FluentValidation.dll": {
             "assemblyVersion": "12.0.0.0",
             "fileVersion": "12.0.0.0"
+          }
+        }
+      },
+      "HtmlAgilityPack/1.12.2": {
+        "runtime": {
+          "lib/net7.0/HtmlAgilityPack.dll": {
+            "assemblyVersion": "1.12.2.0",
+            "fileVersion": "1.12.2.0"
           }
         }
       },
@@ -1044,6 +1053,13 @@
       "sha512": "sha512-8NVLxtMUXynRHJIX3Hn1ACovaqZIJASufXIIFkD0EUbcd5PmMsL1xUD5h548gCezJ5BzlITaR9CAMrGe29aWpA==",
       "path": "fluentvalidation/12.0.0",
       "hashPath": "fluentvalidation.12.0.0.nupkg.sha512"
+    },
+    "HtmlAgilityPack/1.12.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-btF/9sB65h0V9ipZxVfEQ9fxDwXSFRwhi4Z1qFBgnXONqWVKZE3LxS0JEMW73G3gvrFI7/IAqLA1y/15HDa3fw==",
+      "path": "htmlagilitypack/1.12.2",
+      "hashPath": "htmlagilitypack.1.12.2.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authentication/2.3.0": {
       "type": "package",

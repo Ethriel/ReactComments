@@ -13,26 +13,28 @@ namespace ReactComments.Services.Mapper
                 .ForMember(dto => dto.Text, options => options.MapFrom(model => model.Text))
                 .ForMember(dto => dto.CreatedAt, options => options.MapFrom(model => model.CreatedAt.ToString("o")))
                 .ForMember(dto => dto.UpdatedAt, options => options.MapFrom(model => model.UpdatedAt.ToString("o")))
-                .ForMember(dto => dto.Image, options => options.MapFrom(model => model.Image))
-                .ForMember(dto => dto.ImageMimeType, options => options.MapFrom(model => model.ImageMimeType))
-                .ForMember(dto => dto.TextFile, options => options.MapFrom(model => model.TextFile))
-                .ForMember(dto => dto.TextFileName, options => options.MapFrom(model => model.TextFileName))
-                .ForMember(dto => dto.ParentComment, options => options.MapFrom(model => model.ParentComment))
+                .ForMember(dto => dto.ImageAttachment, options => options.MapFrom(model => model.ImageAttachment))
+                .ForMember(dto => dto.TextFileAttachment, options => options.MapFrom(model => model.TextFileAttachment))
+                .ForMember(dto => dto.ParentCommentId, options=>options.Ignore())
+                .AfterMap((model, dto) => dto.ParentCommentId = model.ParentCommentId?.ToString())
                 .ForMember(dto => dto.Replies, options => options.MapFrom(model => model.Replies))
                 .ForMember(dto => dto.Person, options => options.MapFrom(model => model.Person));
 
             CreateMap<CommentDTO, Comment>()
-                .ForMember(model => model.Id, options => options.MapFrom(dto => dto.Id.ToString()))
+                .ForMember(model => model.Id, options => options.MapFrom(dto => Guid.Parse(dto.Id)))
                 .ForMember(model => model.Text, options => options.MapFrom(dto => dto.Text))
                 .ForMember(model => model.CreatedAt, options => options.MapFrom(dto => DateTime.Parse(dto.CreatedAt, null, System.Globalization.DateTimeStyles.RoundtripKind)))
                 .ForMember(model => model.UpdatedAt, options => options.MapFrom(dto => DateTime.Parse(dto.UpdatedAt, null, System.Globalization.DateTimeStyles.RoundtripKind)))
-                .ForMember(model => model.Image, options => options.MapFrom(dto => dto.Image))
-                .ForMember(model => model.ImageMimeType, options => options.MapFrom(dto => dto.ImageMimeType))
-                .ForMember(model => model.TextFile, options => options.MapFrom(dto => dto.TextFile))
-                .ForMember(model => model.TextFileName, options => options.MapFrom(dto => dto.TextFileName))
-                .ForMember(model => model.ParentComment, options => options.MapFrom(dto => dto.ParentComment))
+                .ForMember(model => model.ImageAttachment, options => options.MapFrom(dto => dto.ImageAttachment))
+                .ForMember(model => model.TextFileAttachment, options => options.MapFrom(dto => dto.TextFileAttachment))
+                .ForMember(model => model.ParentCommentId, options => options.Ignore())
+                .AfterMap((dto, model) =>
+                {
+                    if (dto.ParentCommentId is not null && Guid.TryParse(dto.ParentCommentId, out Guid id)) model.ParentCommentId = id;
+                    else model.ParentCommentId = null;
+                })
                 .ForMember(model => model.Replies, options => options.MapFrom(dto => dto.Replies))
                 .ForMember(model => model.Person, options => options.MapFrom(dto => dto.Person));
         }
-    }
+}
 }

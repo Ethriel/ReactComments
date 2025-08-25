@@ -13,12 +13,16 @@ namespace ReactComments.Services.Implementation
         private readonly IEntityExtendedService<Comment> commentService;
         private readonly IMapperService<Comment, CommentDTO> mapperService;
         private readonly ILogger<ICommentService> logger;
+        private readonly IFileService fileService;
 
-        public CommentService(IEntityExtendedService<Comment> commentService, IMapperService<Comment, CommentDTO> mapperService, ILogger<ICommentService> logger)
+        public CommentService(IEntityExtendedService<Comment> commentService,
+                              IMapperService<Comment, CommentDTO> mapperService,
+                              ILogger<ICommentService> logger, IFileService fileService)
         {
             this.commentService = commentService;
             this.mapperService = mapperService;
             this.logger = logger;
+            this.fileService = fileService;
         }
         public IApiResult AddComment(CommentDTO commentDTO)
         {
@@ -68,6 +72,32 @@ namespace ReactComments.Services.Implementation
             return await Task.FromResult(AddComment(commentDTO));
         }
 
+        public IApiResult CommentDetails(object id)
+        {
+            var apiResult = default(IApiResult);
+
+            var existingComment = FindCommentById(id);
+            if (existingComment is null)
+            {
+                var errorMessage = "Failed to retreive a comment. Comment does not exist!";
+                var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {id}|";
+                logger.LogError(loggerErrorMsg);
+                apiResult = new ApiErrorResult(ApiResultStatus.NotFound, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
+            }
+            else
+            {
+                var commentDto = mapperService.MapDto(existingComment);
+                apiResult = new ApiOkResult(ApiResultStatus.Ok, data: commentDto);
+            }
+
+            return apiResult;
+        }
+
+        public async Task<IApiResult> CommentDetailsAsync(object id)
+        {
+            return await Task.FromResult(CommentDetails(id));
+        }
+
         public IApiResult DeleteComment(object id)
         {
             var apiResult = default(IApiResult);
@@ -78,7 +108,7 @@ namespace ReactComments.Services.Implementation
                 var errorMessage = "Failed to delete a comment. Comment does not exist!";
                 var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {id}|";
                 logger.LogError(loggerErrorMsg);
-                apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
+                apiResult = new ApiErrorResult(ApiResultStatus.NotFound, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
             }
             else
             {
@@ -190,6 +220,39 @@ namespace ReactComments.Services.Implementation
         public async Task<IApiResult> UpdateCommentAsync(CommentDTO commentDTO)
         {
             return await Task.FromResult(UpdateComment(commentDTO));
+        }
+
+        public IApiResult UploadFile(CommentUploadFile uploadFile)
+        {
+            var fileTypeStr = string.Empty;
+            var errorMessage = "Upload failed";
+
+            var commentWithFileDto = fileService.UploadFile(uploadFile);
+            if (commentWithFileDto is null)
+            {
+                return new ApiErrorResult(ApiResultStatus.BadRequest, $"{errorMessage}. Comment id: |{uploadFile.Comment.Id}|", errorMessage, [errorMessage]);
+            }
+            else
+            {
+                var relatedComment = commentService.ReadById(uploadFile.Comment.Id);
+                if (relatedComment is null)
+                {
+                    return new ApiErrorResult(ApiResultStatus.NotFound, $"{errorMessage}. Comment not found, Id: |{uploadFile.Comment.Id}|", errorMessage, [errorMessage]);
+                }
+                else
+                {
+                    var commentWithFile = mapperService.MapEntity(commentWithFileDto);
+                    var updateResult = commentService.Update(relatedComment, commentWithFile);
+                    var updatedCommentDto = mapperService.MapDto(updateResult);
+                    return new ApiOkResult(ApiResultStatus.Ok, data: updatedCommentDto);
+                }
+            }
+
+        }
+
+        public async Task<IApiResult> UploadFileAsync(CommentUploadFile uploadFile)
+        {
+            return await Task.FromResult(UploadFile(uploadFile));
         }
 
         private Comment? FindCommentById(object id)

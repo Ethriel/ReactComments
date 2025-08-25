@@ -14,7 +14,11 @@ namespace ReactComments.Services.Validation.Extensions
         {
             return ruleBuilder
                 .NotEmpty().WithMessage("{PropertyName} can't be empty!")
-                .Must(type => allowedMimeTypes.Contains(type)).WithMessage("Unsupported image type.");
+                .Must(fileName =>
+                {
+                    var ext = Path.GetExtension(fileName?.Trim());
+                    return allowedMimeTypes.Contains(ext);
+                }).WithMessage("Unsupported image type.");
         }
     }
 }

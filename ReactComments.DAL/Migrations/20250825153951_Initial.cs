@@ -78,8 +78,7 @@ namespace ReactComments.DAL.Migrations
                         name: "FK_AspNetUsers_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -175,10 +174,6 @@ namespace ReactComments.DAL.Migrations
                     Text = table.Column<string>(type: "nvarchar(max)", maxLength: 100000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Image = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    ImageMimeType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TextFile = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    TextFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ParentCommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     PersonId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -197,6 +192,32 @@ namespace ReactComments.DAL.Migrations
                         principalTable: "Comments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FileAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Contents = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Type = table.Column<int>(type: "int", maxLength: 50, nullable: false),
+                    ImageCommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TextFileCommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FileAttachments_Comments_ImageCommentId",
+                        column: x => x.ImageCommentId,
+                        principalTable: "Comments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_FileAttachments_Comments_TextFileCommentId",
+                        column: x => x.TextFileCommentId,
+                        principalTable: "Comments",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -252,6 +273,20 @@ namespace ReactComments.DAL.Migrations
                 name: "IX_Comments_PersonId",
                 table: "Comments",
                 column: "PersonId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_ImageCommentId",
+                table: "FileAttachments",
+                column: "ImageCommentId",
+                unique: true,
+                filter: "[ImageCommentId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FileAttachments_TextFileCommentId",
+                table: "FileAttachments",
+                column: "TextFileCommentId",
+                unique: true,
+                filter: "[TextFileCommentId] IS NOT NULL");
         }
 
         /// <inheritdoc />
@@ -271,6 +306,9 @@ namespace ReactComments.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "FileAttachments");
 
             migrationBuilder.DropTable(
                 name: "Comments");

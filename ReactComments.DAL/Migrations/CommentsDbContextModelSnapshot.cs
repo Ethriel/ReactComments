@@ -167,12 +167,6 @@ namespace ReactComments.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<byte[]>("Image")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("ImageMimeType")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("ParentCommentId")
                         .HasColumnType("uniqueidentifier");
 
@@ -182,12 +176,6 @@ namespace ReactComments.DAL.Migrations
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(100000)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("TextFile")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("TextFileName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -200,6 +188,44 @@ namespace ReactComments.DAL.Migrations
                     b.HasIndex("PersonId");
 
                     b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("ReactComments.DAL.Model.FileAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Contents")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<Guid?>("ImageCommentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid?>("TextFileCommentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Type")
+                        .HasMaxLength(50)
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageCommentId")
+                        .IsUnique()
+                        .HasFilter("[ImageCommentId] IS NOT NULL");
+
+                    b.HasIndex("TextFileCommentId")
+                        .IsUnique()
+                        .HasFilter("[TextFileCommentId] IS NOT NULL");
+
+                    b.ToTable("FileAttachments");
                 });
 
             modelBuilder.Entity("ReactComments.DAL.Model.Person", b =>
@@ -350,12 +376,27 @@ namespace ReactComments.DAL.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("ReactComments.DAL.Model.FileAttachment", b =>
+                {
+                    b.HasOne("ReactComments.DAL.Model.Comment", "ImageComment")
+                        .WithOne("ImageAttachment")
+                        .HasForeignKey("ReactComments.DAL.Model.FileAttachment", "ImageCommentId");
+
+                    b.HasOne("ReactComments.DAL.Model.Comment", "TextFileComment")
+                        .WithOne("TextFileAttachment")
+                        .HasForeignKey("ReactComments.DAL.Model.FileAttachment", "TextFileCommentId");
+
+                    b.Navigation("ImageComment");
+
+                    b.Navigation("TextFileComment");
+                });
+
             modelBuilder.Entity("ReactComments.DAL.Model.Person", b =>
                 {
                     b.HasOne("ReactComments.DAL.Model.AppRole", "AppRole")
                         .WithMany("People")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("AppRole");
@@ -368,7 +409,11 @@ namespace ReactComments.DAL.Migrations
 
             modelBuilder.Entity("ReactComments.DAL.Model.Comment", b =>
                 {
+                    b.Navigation("ImageAttachment");
+
                     b.Navigation("Replies");
+
+                    b.Navigation("TextFileAttachment");
                 });
 
             modelBuilder.Entity("ReactComments.DAL.Model.Person", b =>

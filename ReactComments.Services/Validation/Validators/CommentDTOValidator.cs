@@ -24,21 +24,21 @@ namespace ReactComments.Services.Validation.Validators
                 .NotNullOrEmptyString()
                 .MustBeValidIsoDate();
 
-            RuleFor(c => c.Image)
+            RuleFor(c => c.ImageAttachment.Contents)
                 .MustBeValidImageByteArray()
-                .When(c => c.Image is not null);
+                .When(c => c.ImageAttachment is not null);
 
-            RuleFor(c => c.ImageMimeType)
+            RuleFor(c => c.ImageAttachment.Name)
                 .MustBeValidImageType()
-                .When(c => c.Image is not null);
+                .When(c => c.ImageAttachment is not null);
 
-            RuleFor(c => c.TextFile)
+            RuleFor(c => c.TextFileAttachment.Contents)
                 .MustBeValidImageByteArray()
-                .When(c => c.TextFile is not null);
+                .When(c => c.TextFileAttachment is not null);
 
-            RuleFor(c => c.TextFileName)
+            RuleFor(c => c.TextFileAttachment.Name)
                 .MustBeValidTextFileType()
-                .When(c => c.TextFile is not null && c.TextFileName is not null);
+                .When(c => c.TextFileAttachment is not null);
         }
     }
 }

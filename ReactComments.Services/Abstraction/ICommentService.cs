@@ -9,6 +9,8 @@ namespace ReactComments.Services.Abstraction
     {
         IApiResult AddComment(CommentDTO commentDTO);
         Task<IApiResult> AddCommentAsync(CommentDTO commentDTO);
+        IApiResult CommentDetails(object id);
+        Task<IApiResult> CommentDetailsAsync(object id);
         IApiResult DeleteComment(object id);
         Task<IApiResult> DeleteCommentAsync(object id);
         IApiResult GetComments();
@@ -17,5 +19,7 @@ namespace ReactComments.Services.Abstraction
         Task<IApiResult> GetCommentsByConditionAsync(Expression<Func<Comment, bool>> condition);
         IApiResult UpdateComment(CommentDTO commentDTO);
         Task<IApiResult> UpdateCommentAsync(CommentDTO commentDTO);
+        IApiResult UploadFile(CommentUploadFile uploadFile);
+        Task<IApiResult> UploadFileAsync(CommentUploadFile uploadFile);
     }
 }
