@@ -16,8 +16,10 @@ namespace ReactComments.Services.Implementation
         private readonly ILogger<IAuthService> logger;
         private readonly IMapperService<Person, PersonDTO> mapperService;
 
-        public AuthService(SignInManager<Person> signInManager, UserManager<Person> userManager,
-                           RoleManager<AppRole> roleManager, ILogger<IAuthService> logger,
+        public AuthService(SignInManager<Person> signInManager,
+                           UserManager<Person> userManager,
+                           RoleManager<AppRole> roleManager,
+                           ILogger<IAuthService> logger,
                            IMapperService<Person, PersonDTO> mapperService)
         {
             this.signInManager = signInManager;
@@ -43,33 +45,32 @@ namespace ReactComments.Services.Implementation
 
         public async Task<IApiResult> SignInAsync(PersonAuth personAuth)
         {
-            var apiResult = default(IApiResult);
-
             var user = await userManager.FindByEmailAsync(personAuth.Email);
             if (user is null)
             {
                 var message = "Sign in has failed";
                 var loggerMessage = $"Sign in has failed for {personAuth.Email}";
                 var errors = new string[] { $"Email {personAuth.Email} is incorrect" };
-                apiResult = new ApiErrorResult(ApiResultStatus.NotFound, loggerMessage, message, errors);
-            }
-            else
-            {
-                var signInResult = await signInManager.PasswordSignInAsync(user, personAuth.Password, true, false);
-                if (signInResult.Succeeded)
-                {
-                    var userDto = mapperService.MapDto(user);
-                    apiResult = new ApiOkResult(data: userDto);
-                }
-                else
-                {
-                    var message = "Sign in has failed";
-                    var errors = new string[] { "Password is incorrect" };
-                    apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, $"User email {user.Email} has failed to sign in with password", message, errors);
-                }
+                return new ApiErrorResult(ApiResultStatus.NotFound,
+                                          loggerMessage,
+                                          message,
+                                          errors);
             }
 
-            return apiResult;
+            var signInResult = await signInManager.PasswordSignInAsync(user, personAuth.Password, true, false);
+            if (!signInResult.Succeeded)
+            {
+                var message = "Sign in has failed";
+                var errors = new string[] { "Password is incorrect" };
+                return new ApiErrorResult(ApiResultStatus.BadRequest,
+                                          $"User email {user.Email} has failed to sign in with password",
+                                          message,
+                                          errors);
+                
+            }
+
+            var userDto = mapperService.MapDto(user);
+            return new ApiOkResult(data: userDto);
         }
 
         public IApiResult SignOut(string email)

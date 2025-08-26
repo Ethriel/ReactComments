@@ -4,6 +4,7 @@ namespace ReactComments.Services.Model
 {
     public class CommentUploadFile
     {
+        // make just as id
         public CommentDTO Comment { get; set; }
         public int UserId { get; set; }
         public IFormFile File { get; set; }

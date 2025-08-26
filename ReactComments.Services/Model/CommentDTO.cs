@@ -10,24 +10,7 @@
         public FileAttachmentDTO? TextFileAttachment { get; set; }
         public string? ParentCommentId { get; set; }
         public ICollection<CommentDTO>? Replies { get; set; }
+        // make just as id
         public PersonDTO Person { get; set; }
-        public CommentDTO()
-        {
-            Replies = [];
-        }
-        public CommentDTO(string id, string text, string createdAt, string updatedAt, FileAttachmentDTO imageAttachment,
-                          FileAttachmentDTO textFileAttachment, string? parentCommentId,
-                          ICollection<CommentDTO> replies, PersonDTO person)
-        {
-            Id = id;
-            Text = text;
-            CreatedAt = createdAt;
-            UpdatedAt = updatedAt;
-            ParentCommentId = parentCommentId;
-            ImageAttachment = imageAttachment;
-            TextFileAttachment = textFileAttachment;
-            Replies = replies;
-            Person = person;
-        }
     }
 }

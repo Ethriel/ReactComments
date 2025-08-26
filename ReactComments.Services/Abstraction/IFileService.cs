@@ -6,7 +6,7 @@ namespace ReactComments.Services.Abstraction
 
     public interface IFileService
     {
-        CommentDTO UploadFile(CommentUploadFile uploadFile);
-        Task<CommentDTO> UploadFileAsync(CommentUploadFile uploadFile);
+        CommentDTO? UploadFile(CommentUploadFile uploadFile);
+        Task<CommentDTO?> UploadFileAsync(CommentUploadFile uploadFile);
     }
 }

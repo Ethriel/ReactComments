@@ -47,6 +47,7 @@ namespace ReactComments.Server.Extensions
             return services.AddScoped<IValidator<CommentDTO>, CommentDTOValidator>()
                            .AddScoped<IValidator<PersonDTO>, PersonDTOValidator>()
                            .AddScoped<IValidator<PersonAuth>, PersonAuthValidator>()
+                           .AddScoped<IValidator<PersonSignUp>, PersonSignUpValidator>()
                            .AddScoped<IValidator<EmailWrapper>, EmailWrapperValidator>()
                            .AddScoped<IValidator<CommentUploadFile>, CommentUploadFileValidator>();
         }
@@ -79,7 +80,6 @@ namespace ReactComments.Server.Extensions
                     return Task.CompletedTask;
                 };
             });
-
         }
     }
 }

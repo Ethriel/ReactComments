@@ -12,7 +12,7 @@ namespace ReactComments.Services.Implementation
         {
             this.mapperService = mapperService;
         }
-        public CommentDTO UploadFile(CommentUploadFile uploadFile)
+        public CommentDTO? UploadFile(CommentUploadFile uploadFile)
         {
             var fileType = default(UploadFileTypes);
 
@@ -57,7 +57,7 @@ namespace ReactComments.Services.Implementation
             return uploadFile.Comment;
         }
 
-        public async Task<CommentDTO> UploadFileAsync(CommentUploadFile uploadFile)
+        public async Task<CommentDTO?> UploadFileAsync(CommentUploadFile uploadFile)
         {
             return await Task.FromResult(UploadFile(uploadFile));
         }

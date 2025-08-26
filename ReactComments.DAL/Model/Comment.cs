@@ -13,11 +13,5 @@
         public virtual ICollection<Comment>? Replies { get; set; }
         public int PersonId { get; set; }
         public virtual Person Person { get; set; }
-
-        public Comment()
-        {
-            Replies = new HashSet<Comment>();
-            CreatedAt = DateTime.UtcNow;
-        }
     }
 }

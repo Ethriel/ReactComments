@@ -9,19 +9,5 @@
         public string? HomePage { get; set; }
         public string RegisteredDate { get; set; }
         public virtual ICollection<CommentDTO> Comments { get; set; }
-        public PersonDTO()
-        {
-            Comments = [];
-        }
-        public PersonDTO(int id, string username, string email, string role, string? homePage, string registeredDate, ICollection<CommentDTO> comments)
-        {
-            Id = id;
-            UserName = username;
-            Email = email;
-            Role = role;
-            HomePage = homePage;
-            RegisteredDate = registeredDate;
-            Comments = comments;
-        }
     }
 }

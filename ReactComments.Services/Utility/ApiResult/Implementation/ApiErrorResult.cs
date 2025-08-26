@@ -11,12 +11,18 @@ namespace ReactComments.Services.Utility.ApiResult.Implementation
 
         public ApiErrorResult() { }
 
-        public ApiErrorResult(ApiResultStatus apiResultStatus = ApiResultStatus.BadRequest, string loggerErrorMessage = "API request failed", string errorMessage = "An error occured", IEnumerable<string> errors = null)
+        public ApiErrorResult(ApiResultStatus apiResultStatus = ApiResultStatus.BadRequest,
+                              string loggerErrorMessage = "API request failed",
+                              string errorMessage = "An error occured",
+                              IEnumerable<string> errors = null)
         {
             SetErrorResult(apiResultStatus, loggerErrorMessage, errorMessage, errors);
         }
 
-        public void SetErrorResult(ApiResultStatus apiResultStatus = ApiResultStatus.BadRequest, string loggerMessage = "API request failed", string errorMessage = "An error occured", IEnumerable<string> errors = null)
+        public void SetErrorResult(ApiResultStatus apiResultStatus = ApiResultStatus.BadRequest,
+                                   string loggerMessage = "API request failed",
+                                   string errorMessage = "An error occured",
+                                   IEnumerable<string> errors = null)
         {
             ApiResultStatus = apiResultStatus;
             LoggerMessage = loggerMessage;
