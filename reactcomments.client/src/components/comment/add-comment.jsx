@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import axios from 'axios';
@@ -11,6 +11,7 @@ import { FileUploader } from '../file-uploader/file-uploader';
 import { MAIN } from '../../utility/routes/app-paths';
 import { getCurrentUser } from '../../utility/handle-current-user/get-current-user'
 import { imageResizer } from '../../utility/image-resizer'
+import { CaptchaInput } from '../utility/CaptchaInput';
 
 const QuillComponent = ({ handleChange, ...props }) => {
     const toolbarOptions = [
@@ -28,6 +29,7 @@ export const AddComment = () => {
     const [fileList, setFileList] = useState([]);
     const navigate = useNavigate();
     const { id } = useParams();
+    const captchaRef = useRef(null);
 
     const addingReply = id ? true : false;
 
@@ -159,6 +161,16 @@ export const AddComment = () => {
                     multiple={false}
                     accept={['.txt', '.jpg', '.png']}
                 />
+            </Form.Item>
+            <Form.Item
+                name="captchaToken"
+                rules={[
+                    {
+                        required: true,
+                        message: "Complete CAPTCHA"
+                    }
+                ]}>
+                <CaptchaInput style={{ margin: '0 auto' }} ref={captchaRef} />
             </Form.Item>
             <Form.Item style={{ marginBottom: "0px" }}>
                 <Button block type="primary" htmlType="submit" style={{ maxWidth: '200px' }}>
