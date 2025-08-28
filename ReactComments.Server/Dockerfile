@@ -8,6 +8,7 @@ COPY ["ReactComments.DAL/ReactComments.DAL.csproj", "/src/ReactComments.DAL/"]
 COPY ["ReactComments.Services/ReactComments.Services.csproj", "/src/ReactComments.Services/"]
 COPY ["ReactComments.Server/appsettings.json", "/src/ReactComments.Server/appsettings.json"]
 
+
 WORKDIR "/src/ReactComments.Server"
 RUN dotnet restore "ReactComments.Server.csproj"
 COPY . .
