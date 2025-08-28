@@ -20,6 +20,8 @@ namespace ReactComments.Server
 
             builder.Services.AddControllers();
 
+            builder.Services.AddHttpClient();
+
             builder.Services.AddIdentity<Person, AppRole>()
                             .AddEntityFrameworkStores<CommentsDbContext>()
                             .AddRoles<AppRole>()

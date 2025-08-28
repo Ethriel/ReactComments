@@ -5,9 +5,9 @@ namespace ReactComments.Services.Validation.Extensions
 {
     public static class HtmlValidationExtensions
     {
-        private static readonly string[] allowedTags = { "a", "code", "i", "strong" };
+        private static readonly string[] allowedTags = { "a", "code", "i", "strong", "p" };
 
-        private static readonly Dictionary<string, string[]> allowedAttributes = new() { { "a", new[] { "href", "title" } } };
+        private static readonly Dictionary<string, string[]> allowedAttributes = new() { { "a", new[] { "href", "title", "rel", "target" } } };
 
         public static IRuleBuilderOptions<T, string?> MustBeAllowedHtml<T>(this IRuleBuilder<T, string?> ruleBuilder)
         {

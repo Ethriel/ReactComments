@@ -14,16 +14,18 @@ namespace ReactComments.Services.Implementation
             this.context = context;
             this.set = context.Set<T>();
         }
-        public bool Create(T entity)
+        public T Create(T entity)
         {
-            if (entity == null) return false;
+            if (entity == null) return null;
 
-            set.Add(entity);
+            var createdEntity = set.Add(entity);
 
-            return Save() >= 0;
+            Save();
+
+            return createdEntity.Entity;
         }
 
-        public async Task<bool> CreateAsync(T entity)
+        public async Task<T> CreateAsync(T entity)
         {
             return await Task.FromResult(Create(entity));
         }

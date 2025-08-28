@@ -11,86 +11,116 @@ namespace ReactComments.Services.Implementation
     public class CommentService : ICommentService
     {
         private readonly IEntityExtendedService<Comment> commentService;
-        private readonly IMapperService<Comment, CommentDTO> mapperService;
+        private readonly IMapperService<Comment, CommentDTO> commentMapperService;
+        private readonly IMapperService<CommentDTO, SubmitComment> submitCommentMapperService;
         private readonly ILogger<ICommentService> logger;
         private readonly IFileService fileService;
 
         public CommentService(IEntityExtendedService<Comment> commentService,
-                              IMapperService<Comment, CommentDTO> mapperService,
-                              ILogger<ICommentService> logger, IFileService fileService)
+                              IMapperService<Comment, CommentDTO> commentMapperService,
+                              IMapperService<CommentDTO, SubmitComment> submitCommentMapperService,
+                              ILogger<ICommentService> logger,
+                              IFileService fileService)
         {
             this.commentService = commentService;
-            this.mapperService = mapperService;
+            this.commentMapperService = commentMapperService;
+            this.submitCommentMapperService = submitCommentMapperService;
             this.logger = logger;
             this.fileService = fileService;
         }
-        public IApiResult AddComment(CommentDTO commentDTO)
+        public IApiResult AddComment(SubmitComment submitComment)
         {
-            var apiResult = default(IApiResult);
-
-            var existingComment = FindCommentById(commentDTO.Id);
-            if (existingComment is null)
+            if (!Guid.TryParse(submitComment.Id, out var guid))
             {
-                var commentFromDto = mapperService.MapEntity(commentDTO);
-                if (commentFromDto is null)
-                {
-                    var mappingErrorMsg = "Invalid mapping result";
-                    var loggerErrorMsg = $"{mappingErrorMsg}. Attempted for comment |id: {commentDTO.Id}|";
-                    logger.LogError(loggerErrorMsg);
-                    apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [mappingErrorMsg], loggerErrorMessage: loggerErrorMsg);
-                }
-                else
-                {
-                    var addResult = commentService.Create(commentFromDto);
-                    if (addResult)
-                    {
-                        var comment = FindCommentById(commentDTO.Id);
-                        var commentToReturnDto = mapperService.MapDto(comment);
-                        apiResult = new ApiOkResult(ApiResultStatus.Ok, data: commentToReturnDto);
-                    }
-                    else
-                    {
-                        var errorMessage = "Failed to add new comment";
-                        var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {commentDTO.Id}|";
-                        logger.LogError(loggerErrorMsg);
-                        apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
-                    }
-                }
+                guid = new Guid();
             }
-            else
+            var existingComment = FindCommentById(guid);
+            if (existingComment != null)
             {
-                var errorMessage = $"Comment |{commentDTO.Id}| already exists!";
+                var errorMessage = $"Comment |{submitComment.Id}| already exists!";
                 logger.LogError(errorMessage);
-                apiResult = new ApiErrorResult(ApiResultStatus.Conflict, errors: [errorMessage]);
+                return new ApiErrorResult(ApiResultStatus.Conflict, errors: [errorMessage]);
             }
 
-            return apiResult;
+            var commentDtoFromSubmit = submitCommentMapperService.MapEntity(submitComment);
+            if (commentDtoFromSubmit == null)
+            {
+                var mappingErrorMsg = "Invalid mapping result";
+                var loggerErrorMsg = $"{mappingErrorMsg}. Attempted for comment |id: {submitComment.Id}|";
+                logger.LogError(loggerErrorMsg);
+                return new ApiErrorResult(ApiResultStatus.BadRequest, errors: [mappingErrorMsg], loggerErrorMessage: loggerErrorMsg);
+            }
+
+            if (submitComment.File != null)
+            {
+                commentDtoFromSubmit = fileService.UploadFile(commentDtoFromSubmit, submitComment.File);
+                if (commentDtoFromSubmit == null)
+                {
+                    var mappingErrorMsg = "Could not upload a file";
+                    var loggerErrorMsg = $"{mappingErrorMsg}. Attempted for comment |id: {submitComment.Id}|";
+                    logger.LogError(loggerErrorMsg);
+                    return new ApiErrorResult(ApiResultStatus.BadRequest, errors: [mappingErrorMsg], loggerErrorMessage: loggerErrorMsg);
+                }
+            }
+
+            commentDtoFromSubmit.CreatedAt = DateTime.Now.ToString("o");
+            var commentFromDto = commentMapperService.MapEntity(commentDtoFromSubmit);
+            var addResult = commentService.Create(commentFromDto);
+            if (addResult == null)
+            {
+                var errorMessage = "Failed to add new comment";
+                var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {submitComment.Id}|";
+                logger.LogError(loggerErrorMsg);
+                return new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
+            }
+
+            var commentToReturnDto = commentMapperService.MapDto(addResult);
+            return new ApiOkResult(ApiResultStatus.Ok, data: commentToReturnDto);
         }
 
-        public async Task<IApiResult> AddCommentAsync(CommentDTO commentDTO)
+        public async Task<IApiResult> AddCommentAsync(SubmitComment submitComment)
         {
-            return await Task.FromResult(AddComment(commentDTO));
+            return await Task.FromResult(AddComment(submitComment));
+        }
+
+        public IApiResult AddReply(SubmitComment submitComment)
+        {
+            if (submitComment.ParentCommentId == null)
+            {
+                return new ApiErrorResult(ApiResultStatus.BadRequest,
+                                          "Parent comment id is missing",
+                                          "Add reply failed",
+                                          ["Parent comment is missing!"]);
+            }
+
+            return AddComment(submitComment);
+        }
+
+        public async Task<IApiResult> AddReplyAsync(SubmitComment submitComment)
+        {
+            return await Task.FromResult(AddReply(submitComment));
         }
 
         public IApiResult CommentDetails(object id)
         {
-            var apiResult = default(IApiResult);
+            var errorMessage = "Failed to retreive a comment";
 
-            var existingComment = FindCommentById(id);
+            if (!Guid.TryParse(id.ToString(), out var guid))
+            {
+                return new ApiErrorResult(ApiResultStatus.BadRequest, $"{errorMessage}. Id: |{id}|", errorMessage, ["Invalid guid"]);
+            }
+
+            var existingComment = FindCommentById(guid);
             if (existingComment is null)
             {
-                var errorMessage = "Failed to retreive a comment. Comment does not exist!";
+                errorMessage += "Comment does not exist!";
                 var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {id}|";
                 logger.LogError(loggerErrorMsg);
-                apiResult = new ApiErrorResult(ApiResultStatus.NotFound, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
-            }
-            else
-            {
-                var commentDto = mapperService.MapDto(existingComment);
-                apiResult = new ApiOkResult(ApiResultStatus.Ok, data: commentDto);
+                return new ApiErrorResult(ApiResultStatus.NotFound, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
             }
 
-            return apiResult;
+            var commentDto = commentMapperService.MapDto(existingComment);
+            return new ApiOkResult(ApiResultStatus.Ok, data: commentDto);
         }
 
         public async Task<IApiResult> CommentDetailsAsync(object id)
@@ -136,22 +166,16 @@ namespace ReactComments.Services.Implementation
 
         public IApiResult GetComments()
         {
-            var apiResult = default(IApiResult);
-
             var comments = commentService.Read().ToArray();
             if (comments is null || comments.Length == 0)
             {
                 var noCommentsMessage = "No comments to show";
                 logger.LogWarning(noCommentsMessage);
-                apiResult = new ApiOkResult(ApiResultStatus.NoContent, noCommentsMessage);
-            }
-            else
-            {
-                var commentsDtos = mapperService.MapDtos(comments);
-                apiResult = new ApiOkResult(ApiResultStatus.Ok, data: commentsDtos);
+                return new ApiOkResult(ApiResultStatus.NoContent, noCommentsMessage);
             }
 
-            return apiResult;
+            var commentsDtos = commentMapperService.MapDtos(comments);
+            return new ApiOkResult(ApiResultStatus.Ok, data: commentsDtos);
         }
 
         public async Task<IApiResult> GetCommentsAsync()
@@ -172,7 +196,7 @@ namespace ReactComments.Services.Implementation
             }
             else
             {
-                var commentsDtos = mapperService.MapDtos(comments);
+                var commentsDtos = commentMapperService.MapDtos(comments);
                 apiResult = new ApiOkResult(ApiResultStatus.Ok, data: commentsDtos);
             }
 
@@ -184,42 +208,54 @@ namespace ReactComments.Services.Implementation
             return await Task.FromResult(GetCommentsByCondition(condition));
         }
 
-        public IApiResult UpdateComment(CommentDTO commentDTO)
+        public IApiResult GetTopLevelComments()
         {
-            var apiResult = default(IApiResult);
+            var topLevelComments = commentService.ReadEntitiesByCondition(c => c.ParentCommentId == null).ToArray();
+            var topLevelCommentsDtos = commentMapperService.MapDtos(topLevelComments);
 
-            var existingComment = FindCommentById(commentDTO.Id);
-            if (existingComment is null)
-            {
-                var errorMessage = "Failed to update a comment. Comment does not exist!";
-                var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {commentDTO.Id}|";
-                logger.LogError(loggerErrorMsg);
-                apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
-            }
-            else
-            {
-                var toUpdateComment = mapperService.MapEntity(commentDTO);
-                var updateResultComment = commentService.Update(existingComment, toUpdateComment);
-                if (updateResultComment is not null)
-                {
-                    var commentToReturnDto = mapperService.MapDto(updateResultComment);
-                    apiResult = new ApiOkResult(ApiResultStatus.Ok, data: commentToReturnDto);
-                }
-                else
-                {
-                    var errorMessage = "Failed to update a comment";
-                    var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {commentDTO.Id}|";
-                    logger.LogError(loggerErrorMsg);
-                    apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
-                }
-            }
-
-            return apiResult;
+            return new ApiOkResult(ApiResultStatus.Ok, data: topLevelCommentsDtos);
         }
 
-        public async Task<IApiResult> UpdateCommentAsync(CommentDTO commentDTO)
+        public async Task<IApiResult> GetTopLevelCommentsAsync()
         {
-            return await Task.FromResult(UpdateComment(commentDTO));
+            return await Task.FromResult(GetTopLevelComments());
+        }
+
+        public IApiResult UpdateComment(SubmitComment submitComment)
+        {
+            var errorMessage = "Failed to update a comment";
+            var loggerErrorMsg = $"{errorMessage}. Attempted for comment |id: {submitComment.Id}|";
+
+            var existingComment = FindCommentById(submitComment.Id);
+            if (existingComment is null)
+            {
+                logger.LogError(loggerErrorMsg);
+                return new ApiErrorResult(ApiResultStatus.BadRequest, errors: ["Comment does not exist!"], loggerErrorMessage: loggerErrorMsg);
+            }
+
+            var toUpdateCommentDTO = submitCommentMapperService.MapEntity(submitComment);
+            if (toUpdateCommentDTO is null)
+            {
+                logger.LogError(loggerErrorMsg);
+                return new ApiErrorResult(ApiResultStatus.BadRequest, errors: ["Mapper error"], loggerErrorMessage: loggerErrorMsg);
+            }
+
+            var toUpdateComment = commentMapperService.MapEntity(toUpdateCommentDTO);
+
+            var updateResultComment = commentService.Update(existingComment, toUpdateComment);
+            if (updateResultComment is null)
+            {
+                logger.LogError(loggerErrorMsg);
+                return new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
+            }
+
+            var commentToReturnDto = commentMapperService.MapDto(updateResultComment);
+            return new ApiOkResult(ApiResultStatus.Ok, data: commentToReturnDto);
+        }
+
+        public async Task<IApiResult> UpdateCommentAsync(SubmitComment submitComment)
+        {
+            return await Task.FromResult(UpdateComment(submitComment));
         }
 
         public IApiResult UploadFile(CommentUploadFile uploadFile)
@@ -227,27 +263,25 @@ namespace ReactComments.Services.Implementation
             var fileTypeStr = string.Empty;
             var errorMessage = "Upload failed";
 
-            var commentWithFileDto = fileService.UploadFile(uploadFile);
-            if (commentWithFileDto is null)
+            var relatedComment = commentService.ReadById(uploadFile.CommentId);
+            if (relatedComment is null)
             {
-                return new ApiErrorResult(ApiResultStatus.BadRequest, $"{errorMessage}. Comment id: |{uploadFile.Comment.Id}|", errorMessage, [errorMessage]);
-            }
-            else
-            {
-                var relatedComment = commentService.ReadById(uploadFile.Comment.Id);
-                if (relatedComment is null)
-                {
-                    return new ApiErrorResult(ApiResultStatus.NotFound, $"{errorMessage}. Comment not found, Id: |{uploadFile.Comment.Id}|", errorMessage, [errorMessage]);
-                }
-                else
-                {
-                    var commentWithFile = mapperService.MapEntity(commentWithFileDto);
-                    var updateResult = commentService.Update(relatedComment, commentWithFile);
-                    var updatedCommentDto = mapperService.MapDto(updateResult);
-                    return new ApiOkResult(ApiResultStatus.Ok, data: updatedCommentDto);
-                }
+                return new ApiErrorResult(ApiResultStatus.NotFound, $"{errorMessage}. Comment not found, Id: |{uploadFile.CommentId}|", errorMessage, [errorMessage]);
             }
 
+            var relatedCommentDto = commentMapperService.MapDto(relatedComment);
+
+            relatedCommentDto = fileService.UploadFile(relatedCommentDto, uploadFile.File);
+            if (relatedCommentDto is null)
+            {
+                return new ApiErrorResult(ApiResultStatus.BadRequest, $"{errorMessage}. Comment id: |{uploadFile.CommentId}|", errorMessage, [errorMessage]);
+            }
+
+            var commentWithFile = commentMapperService.MapEntity(relatedCommentDto);
+            var updateResult = commentService.Update(relatedComment, commentWithFile);
+            var updatedCommentDto = commentMapperService.MapDto(updateResult);
+
+            return new ApiOkResult(ApiResultStatus.Ok, data: updatedCommentDto);
         }
 
         public async Task<IApiResult> UploadFileAsync(CommentUploadFile uploadFile)

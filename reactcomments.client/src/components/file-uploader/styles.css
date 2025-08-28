@@ -1,0 +1,9 @@
+.file-input {
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.file-input:hover {
+  cursor: pointer;
+  border-color: #747bff;
+}

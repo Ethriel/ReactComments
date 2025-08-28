@@ -6,6 +6,12 @@ import fs from 'fs';
 import path from 'path';
 import child_process from 'child_process';
 import { env } from 'process';
+import dotenv from 'dotenv';
+
+if(!env.ASPNETCORE_HTTPS_PORT){
+    console.log('env.ASPNETCORE_HTTPS_PORT is not set. loading local .env file');
+    dotenv.config({ path: path.resolve(__dirname, '.env') });
+}
 
 const baseFolder =
     env.APPDATA !== undefined && env.APPDATA !== ''
@@ -38,14 +44,16 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
 //    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:8081';
 
 const isDocker = env.VITE_IN_DOCKER === 'true';
-
-const target = isDocker
+const target = !isDocker ? env.VITE_API_URL : (isDocker
     ? 'https://host.docker.internal:8081' // reach host machine from container
     : env.ASPNETCORE_HTTPS_PORT
         ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}`
         : env.ASPNETCORE_URLS
             ? env.ASPNETCORE_URLS.split(';')[0]
-            : 'https://localhost:8081';
+            : 'https://localhost:8081')
+
+console.log("TARGET");
+console.log(target);
 
 // https://vitejs.dev/config/
 export default defineConfig({

@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ReactComments.DAL;
+using ReactComments.Server.Filters;
 using ReactComments.Services.Abstraction;
 using ReactComments.Services.Implementation;
 using ReactComments.Services.Model;
@@ -38,7 +39,8 @@ namespace ReactComments.Server.Extensions
                            .AddScoped<IPersonService, PersonService>()
                            .AddScoped<IFileService, FileService>()
                            .AddScoped<ICommentService, CommentService>()
-                           .AddScoped<IAuthService, AuthService>();
+                           .AddScoped<IAuthService, AuthService>()
+                           .AddScoped<ValidateRecaptchaAttribute>();
                            
         }
 
@@ -49,7 +51,9 @@ namespace ReactComments.Server.Extensions
                            .AddScoped<IValidator<PersonAuth>, PersonAuthValidator>()
                            .AddScoped<IValidator<PersonSignUp>, PersonSignUpValidator>()
                            .AddScoped<IValidator<EmailWrapper>, EmailWrapperValidator>()
-                           .AddScoped<IValidator<CommentUploadFile>, CommentUploadFileValidator>();
+                           //.AddScoped<IValidator<CommentUploadFile>, CommentUploadFileValidator>()
+                           .AddScoped<IValidator<SubmitComment>, SubmitCommentValidator>()
+                           .AddScoped<CaptchaValidator>();
         }
 
         public static IServiceCollection ConfigureCookies(this IServiceCollection services)

@@ -10,7 +10,7 @@
         public FileAttachmentDTO? TextFileAttachment { get; set; }
         public string? ParentCommentId { get; set; }
         public ICollection<CommentDTO>? Replies { get; set; }
-        // make just as id
-        public PersonDTO Person { get; set; }
+        public int PersonId { get; set; }
+        public string PersonName { get; set; }
     }
 }

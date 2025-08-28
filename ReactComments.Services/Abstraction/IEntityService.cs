@@ -1,9 +1,11 @@
-﻿namespace ReactComments.Services.Abstraction
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
+
+namespace ReactComments.Services.Abstraction
 {
     public interface IEntityService<T> where T : class
     {
-        bool Create(T entity);
-        Task<bool> CreateAsync(T entity);
+        T Create(T entity);
+        Task<T> CreateAsync(T entity);
         IQueryable<T> Read();
         Task<IQueryable<T>> ReadAsync();
         T? Update(T oldEntity, T newEntity);

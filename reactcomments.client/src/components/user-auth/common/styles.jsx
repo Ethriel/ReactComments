@@ -1,6 +1,6 @@
 import { Grid, theme } from "antd";
 
-export const signUpStyles = () => {
+export const commonFormStyles = () => {
     const { useToken } = theme;
     const { useBreakpoint } = Grid;
     const { token } = useToken();

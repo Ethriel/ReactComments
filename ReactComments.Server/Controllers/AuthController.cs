@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ReactComments.Server.Extensions;
+using ReactComments.Server.Filters;
 using ReactComments.Services.Abstraction;
 using ReactComments.Services.Model;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Attributes;
 
 namespace ReactComments.Server.Controllers
 {
-    [AutoValidation]
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : Controller
@@ -20,6 +20,7 @@ namespace ReactComments.Server.Controllers
             this.logger = logger;
         }
 
+        [ServiceFilter(typeof(ValidateRecaptchaAttribute))]
         [HttpPost("sign-in")]
         public async Task<IActionResult> SignIn([FromBody] PersonAuth personAuth)
         {
@@ -27,11 +28,13 @@ namespace ReactComments.Server.Controllers
 
             return this.ActionResultByApiResult(result, logger);
         }
-        
+
+        [AutoValidation]
+        [ServiceFilter(typeof(ValidateRecaptchaAttribute))]
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp([FromBody] PersonAuth personAuth)
+        public async Task<IActionResult> SignUp([FromBody] PersonSignUp personSignUp)
         {
-            var result = await authService.SignUpAsync(personAuth);
+            var result = await authService.SignUpAsync(personSignUp);
 
             return this.ActionResultByApiResult(result, logger);
         }

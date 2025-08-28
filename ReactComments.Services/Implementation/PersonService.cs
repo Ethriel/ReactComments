@@ -22,45 +22,36 @@ namespace ReactComments.Services.Implementation
         }
         public IApiResult AddPerson(PersonDTO personDTO)
         {
-            var apiResult = default(IApiResult);
-
             var existingPerson = FindPersonByEmail(personDTO.Email);
-            if (existingPerson is null)
-            {
-                var personFromDto = mapperService.MapEntity(personDTO);
-                if (personFromDto is null)
-                {
-                    var mappingErrorMsg = "Invalid mapping result";
-                    var loggerErrorMsg = $"{mappingErrorMsg}. Attempted for user |email: {personDTO.Email}|";
-                    logger.LogError(loggerErrorMsg);
-                    apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [mappingErrorMsg], loggerErrorMessage: loggerErrorMsg);
-                }
-                else
-                {
-                    var addResult = personService.Create(personFromDto);
-                    if (addResult)
-                    {
-                        var person = FindPersonByEmail(personDTO.Email);
-                        var personToReturnDto = mapperService.MapDto(person);
-                        apiResult = new ApiOkResult(ApiResultStatus.Ok, data: personToReturnDto);
-                    }
-                    else
-                    {
-                        var errorMessage = "Failed to add new person";
-                        var loggerErrorMsg = $"{errorMessage}. Attempted for user |email: {personDTO.Email}|";
-                        logger.LogError(loggerErrorMsg);
-                        apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
-                    }
-                }
-            }
-            else
+            if (existingPerson is not null)
             {
                 var errorMessage = $"User |{personDTO.Email}| already exists!";
                 logger.LogError(errorMessage);
-                apiResult = new ApiErrorResult(ApiResultStatus.Conflict, errors: [errorMessage]);
+                return new ApiErrorResult(ApiResultStatus.Conflict, errors: [errorMessage]);
             }
 
-            return apiResult;
+            var personFromDto = mapperService.MapEntity(personDTO);
+            if (personFromDto is null)
+            {
+                var mappingErrorMsg = "Invalid mapping result";
+                var loggerErrorMsg = $"{mappingErrorMsg}. Attempted for user |email: {personDTO.Email}|";
+                logger.LogError(loggerErrorMsg);
+                return new ApiErrorResult(ApiResultStatus.BadRequest, errors: [mappingErrorMsg], loggerErrorMessage: loggerErrorMsg);
+            }
+            else
+            {
+                var addResult = personService.Create(personFromDto);
+                if (addResult == null)
+                {
+                    var errorMessage = "Failed to add new person";
+                    var loggerErrorMsg = $"{errorMessage}. Attempted for user |email: {personDTO.Email}|";
+                    logger.LogError(loggerErrorMsg);
+                    return new ApiErrorResult(ApiResultStatus.BadRequest, errors: [errorMessage], loggerErrorMessage: loggerErrorMsg);
+                }
+
+                var personToReturnDto = mapperService.MapDto(addResult);
+                return new ApiOkResult(ApiResultStatus.Ok, data: personToReturnDto);
+            }
         }
 
         public async Task<IApiResult> AddPersonAsync(PersonDTO personDTO)

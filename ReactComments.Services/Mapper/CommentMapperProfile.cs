@@ -15,10 +15,11 @@ namespace ReactComments.Services.Mapper
                 .ForMember(dto => dto.UpdatedAt, options => options.MapFrom(model => model.UpdatedAt.ToString("o")))
                 .ForMember(dto => dto.ImageAttachment, options => options.MapFrom(model => model.ImageAttachment))
                 .ForMember(dto => dto.TextFileAttachment, options => options.MapFrom(model => model.TextFileAttachment))
-                .ForMember(dto => dto.ParentCommentId, options=>options.Ignore())
+                .ForMember(dto => dto.ParentCommentId, options => options.Ignore())
                 .AfterMap((model, dto) => dto.ParentCommentId = model.ParentCommentId?.ToString())
                 .ForMember(dto => dto.Replies, options => options.MapFrom(model => model.Replies))
-                .ForMember(dto => dto.Person, options => options.MapFrom(model => model.Person));
+                .ForMember(dto => dto.PersonId, options => options.MapFrom(model => model.PersonId))
+                .ForMember(dto => dto.PersonName, options => options.MapFrom(model => model.Person.UserName));
 
             CreateMap<CommentDTO, Comment>()
                 .ForMember(model => model.Id, options => options.MapFrom(dto => Guid.Parse(dto.Id)))
@@ -34,7 +35,8 @@ namespace ReactComments.Services.Mapper
                     else model.ParentCommentId = null;
                 })
                 .ForMember(model => model.Replies, options => options.MapFrom(dto => dto.Replies))
-                .ForMember(model => model.Person, options => options.MapFrom(dto => dto.Person));
+                //.ForMember(model => model.Person.UserName, options => options.MapFrom(dto => dto.PersonName))
+                .ForMember(model => model.PersonId, options => options.MapFrom(dto => dto.PersonId));
         }
 }
 }

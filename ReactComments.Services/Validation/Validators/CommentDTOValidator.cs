@@ -39,6 +39,9 @@ namespace ReactComments.Services.Validation.Validators
             RuleFor(c => c.TextFileAttachment.Name)
                 .MustBeValidTextFileType()
                 .When(c => c.TextFileAttachment is not null);
+
+            RuleFor(c => c.PersonId)
+                .MustBeValidDigit();
         }
     }
 }

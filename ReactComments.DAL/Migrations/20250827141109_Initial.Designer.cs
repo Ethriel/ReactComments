@@ -12,7 +12,7 @@ using ReactComments.DAL;
 namespace ReactComments.DAL.Migrations
 {
     [DbContext(typeof(CommentsDbContext))]
-    [Migration("20250825153951_Initial")]
+    [Migration("20250827141109_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

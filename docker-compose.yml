@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: ReactComments.Server/Dockerfile
+    image: kerfoer/react-comments-app:backend
     container_name: reactcomments_backend
     ports:
       - "8080:8080"
@@ -20,9 +18,7 @@ services:
       - db
 
   frontend:
-    build:
-      context: ./ReactComments.Client
-      dockerfile: Dockerfile
+    image: kerfoer/react-comments-app:frontend
     container_name: reactcomments_frontend
     ports:
       - "65196:65196"

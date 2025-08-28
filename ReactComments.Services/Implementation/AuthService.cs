@@ -109,45 +109,38 @@ namespace ReactComments.Services.Implementation
             return apiResult;
         }
 
-        public IApiResult SignUp(PersonAuth personAuth)
+        public IApiResult SignUp(PersonSignUp personSignUp)
         {
-            return SignUpAsync(personAuth).Result;
+            return SignUpAsync(personSignUp).Result;
         }
 
-        public async Task<IApiResult> SignUpAsync(PersonAuth personAuth)
+        public async Task<IApiResult> SignUpAsync(PersonSignUp personSignUp)
         {
-            var apiResult = default(IApiResult);
-            var existingUser = await userManager.FindByEmailAsync(personAuth.Email);
+            var existingUser = await userManager.FindByEmailAsync(personSignUp.Email);
 
             if (existingUser is not null)
             {
                 var errorMessage = "Sign up has failed";
-                var loggerMessage = $"New user {personAuth.Email} has tried to sign up. User with this email already exists";
-                var errors = new string[] { $"User {personAuth.Email} is already registered. Try to sign in" };
-                apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, loggerMessage, errorMessage, errors);
+                var loggerMessage = $"New user {personSignUp.Email} has tried to sign up. User with this email already exists";
+                var errors = new string[] { $"User {personSignUp.Email} is already registered. Try to sign in" };
+                return new ApiErrorResult(ApiResultStatus.BadRequest, loggerMessage, errorMessage, errors);
             }
-            else
+
+            var role = await roleManager.FindByNameAsync("USER");
+            var user = new Person { Email = personSignUp.Email, UserName = personSignUp.UserName, AppRole = role, RegisteredDate = DateTime.UtcNow };
+
+            var creationResult = await userManager.CreateAsync(user, personSignUp.Password);
+            if (!creationResult.Succeeded)
             {
-                var role = await roleManager.FindByNameAsync("USER");
-                var user = new Person { Email = personAuth.Email, UserName = personAuth.Email, AppRole = role };
-
-                var creationResult = await userManager.CreateAsync(user, personAuth.Password);
-                if (creationResult.Succeeded)
-                {
-                    user = await userManager.FindByEmailAsync(user.Email);
-                    var userDto = mapperService.MapDto(user);
-                    apiResult = new ApiOkResult(ApiResultStatus.Ok, data: userDto);
-                }
-                else
-                {
-                    var message = "Sign up failed";
-                    var errors = GetIdentityErrors(creationResult.Errors);
-                    var loggerMessage = $"New user {user.Email} has failed to sign up. Errors: {errors}";
-                    apiResult = new ApiErrorResult(ApiResultStatus.BadRequest, loggerMessage, message, errors);
-                }
+                var message = "Sign up failed";
+                var errors = GetIdentityErrors(creationResult.Errors);
+                var loggerMessage = $"New user {user.Email} has failed to sign up. Errors: {errors}";
+                return new ApiErrorResult(ApiResultStatus.BadRequest, loggerMessage, message, errors);
             }
 
-            return apiResult;
+            user = await userManager.FindByEmailAsync(user.Email);
+            var userDto = mapperService.MapDto(user);
+            return new ApiOkResult(ApiResultStatus.Ok, data: userDto);
         }
 
         private IEnumerable<string> GetIdentityErrors(IEnumerable<IdentityError> errorsCollection)

@@ -8,8 +8,8 @@ namespace ReactComments.Services.Abstraction
         Task AddRolesAsync();
         IApiResult SignIn(PersonAuth personAuth);
         Task<IApiResult> SignInAsync(PersonAuth personAuth);
-        IApiResult SignUp(PersonAuth personAuth);
-        Task<IApiResult> SignUpAsync(PersonAuth personAuth);
+        IApiResult SignUp(PersonSignUp personAuth);
+        Task<IApiResult> SignUpAsync(PersonSignUp personSignUp);
         IApiResult SignOut(string email);
         Task<IApiResult> SignOutAsync(string email);
     }

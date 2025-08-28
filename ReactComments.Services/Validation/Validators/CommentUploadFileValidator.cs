@@ -8,10 +8,11 @@ namespace ReactComments.Services.Validation.Validators
     {
         public CommentUploadFileValidator()
         {
-            RuleFor(x => x.Comment)
-                .SetValidator(new CommentDTOValidator());
+            RuleFor(x => x.CommentId)
+                .NotNullOrEmptyString()
+                .MustBeValidGuid();
 
-            RuleFor(x => x.UserId)
+            RuleFor(x => x.PersonId)
                 .MustBeValidDigit();
 
             RuleFor(x => x.File)
